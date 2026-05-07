@@ -4,51 +4,17 @@ __generated_with = "0.23.1"
 app = marimo.App(width="medium")
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    #NERC Load Model Model (2020 release)
+    """)
+    return
+
+
 @app.cell
-def _(os, pd):
-    if os.path.exists("loadcomp.csv"):
-        data = pd.read_csv("loadcomp.csv",index_col=[0,1,2,3,4])
-    else:
-        data = []
-        for _file in sorted(os.listdir("data")):
-            if not _file.startswith("LoadComp_") or not _file.endswith(".xlsx"):
-                continue
-            _spec = os.path.splitext(_file)[0].split("_", 3)
-            _pathname = f"data/{_file}"
-            try:
-                _xlsx = pd.ExcelFile(_pathname,engine='openpyxl', engine_kwargs={'data_only': True, 'read_only': True})
-                print(_file, end="", flush=True)
-                for _sheet in _xlsx.sheet_names:
-                    print(end=".", flush=True)
-                    _data = pd.read_excel(
-                        f"data/{_file}",
-                        sheet_name=_sheet,
-                        engine="openpyxl",
-                        engine_kwargs={"data_only": True, "read_only": True},
-                    )
-                    _data[["RO", "SEASON", "NOMD", "HOUR"]] = (
-                        _spec[1].upper(),
-                        _spec[2].upper(),
-                        1 if len(_spec) > 3 else 0,
-                        int(_sheet.replace("Hour", "")) - 1,
-                    )
-                    _data.rename({"#AREA": "LOADTYPE"}, axis=1, inplace=True)
-                    _data.drop(
-                        [x for x in _data.columns if x.startswith("ID_")],
-                        inplace=True,
-                        axis=1,
-                    )
-                    _data.columns = [x.upper().replace("LC_","") for x in _data.columns]
-                    data.append(
-                        _data.set_index(
-                            ["RO", "LOADTYPE", "SEASON", "NOMD", "HOUR"]
-                        ).round(6)
-                    )
-            except Exception as err:
-                print(f"ERROR [{_file}]: {err}", flush=True)
-            print(flush=True)
-        data = pd.concat(data)
-        data.to_csv("loadcomp.csv", index=True, header=True)
+def _(pd):
+    data = pd.read_csv("loadcomp.csv",index_col=list(range(5)))
     return (data,)
 
 
@@ -209,6 +175,14 @@ def _(data, feeder, hour, nomd, ro, season, sector):
     return pie_data, pie_plot
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Source: [NERC Load Model Data (2020)](https://urldefense.us/v3/__https://dev.azure.com/nerc/4dc7f7f3-e936-4308-8330-aa87f6d924fa/_apis/git/repositories/553cd3aa-8c2f-41ac-ba80-9a0748a7150f/items?path=*LMDT_Tool*LMWG*20LMDT*20Tool*20Examples*20and*20Hands*20On*20Training*20Resources.zip&versionDescriptor*5BversionOptions*5D=0&versionDescriptor*5BversionType*5D=0&versionDescriptor*5Bversion*5D=main&resolveLfs=true&*24format=octetStream&api-version=5.0&download=true__;Ly8lJSUlJSUlJSUlJSUlJSU!!G2kpM7uM-TzIFchu!1gJVnnjnUkeLKZ4d_cW3oAvZ5eyL0ouWvda9d0_ZooJWB_4aDgVH5u58M0xWSkdFDj4tWHZpeKDGwCjim2OTeIHPJcg$)
+    """)
+    return
+
+
 @app.cell
 def _():
     import marimo as mo
@@ -218,7 +192,7 @@ def _():
     import matplotlib.pyplot as plt
     pd.options.display.width=None
     pd.options.display.max_columns=None
-    return mo, np, os, pd, plt
+    return mo, np, pd, plt
 
 
 if __name__ == "__main__":

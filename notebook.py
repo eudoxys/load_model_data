@@ -135,13 +135,13 @@ def _(
     mo.ui.tabs(
         {
             "Data": mo.ui.table(data,**_options),
-            "Pie": mo.vstack([
-                mo.hstack([ro,sector,feeder,season,hour,nomd],justify='start'),
-                mo.hstack([pie_plot, mo.ui.table(pie_data, **_options)])]),
             "Area": mo.vstack([
                 mo.hstack([ro,sector,feeder,season,hour,nomd],justify='start'),
                 area_plot, 
                 mo.ui.table(area_data, **_options)]),
+            "Pie": mo.vstack([
+                mo.hstack([ro,sector,feeder,season,hour,nomd],justify='start'),
+                mo.hstack([pie_plot, mo.ui.table(pie_data, **_options)])]),
             "Settings": 
                 mo.vstack([
                     mo.md("**Tables**"),

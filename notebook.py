@@ -1,7 +1,25 @@
 import marimo
 
-__generated_with = "0.23.1"
+__generated_with = "unknown"
 app = marimo.App(width="medium")
+
+
+@app.cell
+def _(pd):
+    data = pd.read_csv("loadcomp.csv", index_col=list(range(5)))
+    data.rename(
+        {
+            "MOTORA": "MA",
+            "MOTORB": "MB",
+            "MOTORC": "MC",
+            "MOTORD": "MD",
+            "PWRELEC": "PE",
+            "STATPF": "SF"
+        },
+        inplace=True,
+        axis=1,
+    )
+    return (data,)
 
 
 @app.cell(hide_code=True)
@@ -10,69 +28,6 @@ def _(mo):
     #NERC Load Model Model (2020 release)
     """)
     return
-
-
-@app.cell
-def _(pd):
-    data = pd.read_csv("loadcomp.csv",index_col=list(range(5)))
-    return (data,)
-
-
-@app.cell
-def _(data, mo):
-    _options = data.index.get_level_values(0).unique()
-    ro = mo.ui.dropdown(options=_options,label="Region:",value=_options[0])
-    return (ro,)
-
-
-@app.cell
-def _():
-    # _options = sorted(data.loc[[ro.value]].index.get_level_values(1).unique())
-    # loadtype = mo.ui.dropdown(options=_options,label="Load type:",value=_options[0])
-    return
-
-
-@app.cell
-def _(data, mo, ro):
-    _options = data.loc[[ro.value]].index.get_level_values(1).unique()
-    _btype = sorted({x.split("_",1)[0] for x in _options})
-    sector = mo.ui.dropdown(options=_btype,label="City/Type:",value=_btype[0])
-    return (sector,)
-
-
-@app.cell
-def _(data, mo, ro, sector):
-    _options = data.loc[[ro.value]].index.get_level_values(1).unique()
-    _ftype = sorted({x.split("_",1)[1] for x in _options if x.startswith(sector.value+"_")})
-    feeder = mo.ui.dropdown(options=_ftype,label="Sector/Load:",value=_ftype[0])
-    return (feeder,)
-
-
-@app.cell
-def _(data, mo):
-    _options = data.index.get_level_values(2).unique()
-    season = mo.ui.dropdown(options=_options,label="Season:",value=_options[0])
-    return (season,)
-
-
-@app.cell
-def _(mo):
-    nomd = mo.ui.checkbox(label="No motor D",value=False)
-    return (nomd,)
-
-
-@app.cell
-def _(mo):
-    hour = mo.ui.slider(start=0,stop=23,label="Hour:",value=15,show_value=True,debounce=True)
-    return (hour,)
-
-
-@app.cell
-def _(mo):
-    # settings
-    show_data_types = mo.ui.checkbox(label="Show data types")
-    show_column_summaries = mo.ui.checkbox(label="Show column summaries")
-    return show_column_summaries, show_data_types
 
 
 @app.cell
@@ -93,31 +48,103 @@ def _(
     show_data_types,
 ):
     _options = {
-        "selection": None,
         "show_data_types": show_data_types.value,
         "show_column_summaries": show_column_summaries.value,
         "show_download": True,
     }
     mo.ui.tabs(
         {
-            "Data": mo.ui.table(data,**_options),
-            "Area": mo.vstack([
-                mo.hstack([ro,sector,feeder,season,hour,nomd],justify='start'),
-                area_plot, 
-                mo.ui.table(area_data, **_options)]),
-            "Pie": mo.vstack([
-                mo.hstack([ro,sector,feeder,season,hour,nomd],justify='start'),
-                mo.hstack([pie_plot, mo.ui.table(pie_data, **_options)])]),
-            "Settings": 
-                mo.vstack([
-                    mo.md("**Tables**"),
-                    show_data_types,
-                    show_column_summaries
-                ]),
+            "Data": mo.ui.table(data, **_options, selection=None),
+            "Shapes": mo.vstack(
+                [
+                    mo.hstack(
+                        [ro, sector, feeder, season, hour, nomd], justify="start"
+                    ),
+                    area_plot,
+                    mo.ui.table(
+                        area_data,
+                        **_options,
+                        selection=None,
+                        # selection="single",
+                        # initial_selection=[hour.value],
+                        page_size=24
+                    ),
+                ]
+            ),
+            "Fractions": mo.vstack(
+                [
+                    mo.hstack(
+                        [ro, sector, feeder, season, hour, nomd], justify="start"
+                    ),
+                    mo.hstack(
+                        [
+                            pie_plot,
+                            mo.ui.table(pie_data, **_options, selection=None),
+                        ]
+                    ),
+                ]
+            ),
+            "Settings": mo.vstack(
+                [mo.md("**Tables**"), show_data_types, show_column_summaries]
+            ),
         },
         lazy=True,
     )
     return
+
+
+@app.cell
+def _(data, mo):
+    _options = data.index.get_level_values(0).unique()
+    ro = mo.ui.dropdown(options=_options, label="Region:", value=_options[0])
+    return (ro,)
+
+
+@app.cell
+def _(data, mo, ro):
+    _options = data.loc[[ro.value]].index.get_level_values(1).unique()
+    _btype = sorted({x.split("_", 1)[0] for x in _options})
+    sector = mo.ui.dropdown(options=_btype, label="City/Type:", value=_btype[0])
+    return (sector,)
+
+
+@app.cell
+def _(data, mo, ro, sector):
+    _options = data.loc[[ro.value]].index.get_level_values(1).unique()
+    _ftype = sorted(
+        {x.split("_", 1)[1] for x in _options if x.startswith(sector.value + "_")}
+    )
+    feeder = mo.ui.dropdown(options=_ftype, label="Sector/Load:", value=_ftype[0])
+    return (feeder,)
+
+
+@app.cell
+def _(data, mo):
+    _options = data.index.get_level_values(2).unique()
+    season = mo.ui.dropdown(options=_options, label="Season:", value=_options[0])
+    return (season,)
+
+
+@app.cell
+def _(mo):
+    nomd = mo.ui.checkbox(label="No motor D", value=False)
+    return (nomd,)
+
+
+@app.cell
+def _(mo):
+    hour = mo.ui.slider(
+        start=0, stop=23, label="Hour:", value=15, show_value=True, debounce=True
+    )
+    return (hour,)
+
+
+@app.cell
+def _(mo):
+    # settings
+    show_data_types = mo.ui.checkbox(label="Show data types")
+    show_column_summaries = mo.ui.checkbox(label="Show column summaries")
+    return show_column_summaries, show_data_types
 
 
 @app.cell
@@ -130,7 +157,7 @@ def _(data, feeder, hour, nomd, np, plt, ro, season, sector):
             1 if nomd.value else 0,
             :,
         ],
-        ["MOTORA", "MOTORB", "MOTORC", "MOTORD", "PWRELEC", "ZP", "IP"],
+        ["MA", "MB", "MC", "MD", "PE", "ZP", "IP"],
     ]
     area_data = (
         _data.reset_index()
@@ -140,11 +167,11 @@ def _(data, feeder, hour, nomd, np, plt, ro, season, sector):
     area_plot = area_data.plot.area(
         figsize=(15, 5),
         grid=True,
-        xlim=[0,23],
+        xlim=[0, 23],
         ylabel="Fraction of load",
         title=f"{ro.value} {feeder.value} {sector.value} {season.value} {'NO ' if nomd.value else 'W/'}MOTOR D",
     )
-    area_plot.plot([hour.value,hour.value],[0,1],linewidth=3,color="k");
+    area_plot.plot([hour.value, hour.value], [0, 1], linewidth=3, color="k")
     plt.legend(loc="right");
     return area_data, area_plot
 
@@ -155,22 +182,29 @@ def _(data, feeder, hour, nomd, ro, season, sector):
         [
             (
                 ro.value,
-            "_".join([sector.value,feeder.value]),
+                "_".join([sector.value, feeder.value]),
                 season.value,
                 1 if nomd.value else 0,
                 hour.value,
             )
         ],
-        ["MOTORA", "MOTORB", "MOTORC", "MOTORD", "PWRELEC", "ZP", "IP"],
+        ["MA", "MB", "MC", "MD", "PE", "ZP", "IP"],
     ]
     _data = (
         _data.stack()
         .reset_index()
         .rename({"level_5": "ENDUSE", 0: "VALUE"}, axis=1)
     )
-    pie_data = _data.set_index("ENDUSE").drop(["RO","LOADTYPE","SEASON","HOUR","NOMD"],axis=1)
+    pie_data = _data.set_index("ENDUSE").drop(
+        ["RO", "LOADTYPE", "SEASON", "HOUR", "NOMD"], axis=1
+    )
     pie_plot = pie_data.plot(
-        kind="pie", y="VALUE", x=pie_data.index, legend=False, autopct="%.1f%%", title=f"{ro.value} {feeder.value} {sector.value} {season.value} {hour.value}h {'NO ' if nomd.value else 'W/'}MOTOR D"
+        kind="pie",
+        y="VALUE",
+        x=pie_data.index,
+        legend=False,
+        autopct="%.1f%%",
+        title=f"{ro.value} {feeder.value} {sector.value} {season.value} {hour.value}h {'NO ' if nomd.value else 'W/'}MOTOR D",
     )
     return pie_data, pie_plot
 
@@ -190,8 +224,9 @@ def _():
     import numpy as np
     import pandas as pd
     import matplotlib.pyplot as plt
-    pd.options.display.width=None
-    pd.options.display.max_columns=None
+
+    pd.options.display.width = None
+    pd.options.display.max_columns = None
     return mo, np, pd, plt
 
 

@@ -25,7 +25,7 @@ def _(pd):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    #NERC Load Model Model (2020 release)
+    #NERC Load Model Data (2020 release)
     """)
     return
 

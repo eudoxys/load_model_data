@@ -1,25 +1,7 @@
 import marimo
 
-__generated_with = "unknown"
+__generated_with = "0.23.6"
 app = marimo.App(width="medium")
-
-
-@app.cell
-def _(pd):
-    data = pd.read_csv("loadcomp.csv", index_col=list(range(5)))
-    data.rename(
-        {
-            "MOTORA": "MA",
-            "MOTORB": "MB",
-            "MOTORC": "MC",
-            "MOTORD": "MD",
-            "PWRELEC": "PE",
-            "STATPF": "SF"
-        },
-        inplace=True,
-        axis=1,
-    )
-    return (data,)
 
 
 @app.cell(hide_code=True)
@@ -54,7 +36,7 @@ def _(
     }
     mo.ui.tabs(
         {
-            "Data": mo.ui.table(data, **_options, selection=None),
+            "Data": mo.ui.table(data, **_options, selection=None, page_size=12),
             "Shapes": mo.vstack(
                 [
                     mo.hstack(
@@ -67,7 +49,7 @@ def _(
                         selection=None,
                         # selection="single",
                         # initial_selection=[hour.value],
-                        page_size=24
+                        page_size=12
                     ),
                 ]
             ),
@@ -90,6 +72,33 @@ def _(
         },
         lazy=True,
     )
+    return
+
+
+@app.cell
+def _(mo, pd):
+    with mo.status.spinner("Loading data"):
+        data = pd.read_csv("loadcomp.csv", index_col=list(range(5)))
+        data.rename(
+            {
+                "MOTORA": "MA",
+                "MOTORB": "MB",
+                "MOTORC": "MC",
+                "MOTORD": "MD",
+                "PWRELEC": "PE",
+                "STATPF": "SF"
+            },
+            inplace=True,
+            axis=1,
+        )
+    return (data,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Source: [NERC Load Model Data (2020)](https://urldefense.us/v3/__https://dev.azure.com/nerc/4dc7f7f3-e936-4308-8330-aa87f6d924fa/_apis/git/repositories/553cd3aa-8c2f-41ac-ba80-9a0748a7150f/items?path=*LMDT_Tool*LMWG*20LMDT*20Tool*20Examples*20and*20Hands*20On*20Training*20Resources.zip&versionDescriptor*5BversionOptions*5D=0&versionDescriptor*5BversionType*5D=0&versionDescriptor*5Bversion*5D=main&resolveLfs=true&*24format=octetStream&api-version=5.0&download=true__;Ly8lJSUlJSUlJSUlJSUlJSU!!G2kpM7uM-TzIFchu!1gJVnnjnUkeLKZ4d_cW3oAvZ5eyL0ouWvda9d0_ZooJWB_4aDgVH5u58M0xWSkdFDj4tWHZpeKDGwCjim2OTeIHPJcg$)
+    """)
     return
 
 
@@ -207,14 +216,6 @@ def _(data, feeder, hour, nomd, ro, season, sector):
         title=f"{ro.value} {feeder.value} {sector.value} {season.value} {hour.value}h {'NO ' if nomd.value else 'W/'}MOTOR D",
     )
     return pie_data, pie_plot
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Source: [NERC Load Model Data (2020)](https://urldefense.us/v3/__https://dev.azure.com/nerc/4dc7f7f3-e936-4308-8330-aa87f6d924fa/_apis/git/repositories/553cd3aa-8c2f-41ac-ba80-9a0748a7150f/items?path=*LMDT_Tool*LMWG*20LMDT*20Tool*20Examples*20and*20Hands*20On*20Training*20Resources.zip&versionDescriptor*5BversionOptions*5D=0&versionDescriptor*5BversionType*5D=0&versionDescriptor*5Bversion*5D=main&resolveLfs=true&*24format=octetStream&api-version=5.0&download=true__;Ly8lJSUlJSUlJSUlJSUlJSU!!G2kpM7uM-TzIFchu!1gJVnnjnUkeLKZ4d_cW3oAvZ5eyL0ouWvda9d0_ZooJWB_4aDgVH5u58M0xWSkdFDj4tWHZpeKDGwCjim2OTeIHPJcg$)
-    """)
-    return
 
 
 @app.cell

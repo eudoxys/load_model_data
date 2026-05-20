@@ -1,0 +1,6 @@
+key,value,description
+DYRfile,Example1_5MW-test.dyr,"PTI PSS®E file name"
+MinMW,5,"Minimum MW value for creating a load model record"
+PQmin,1.4327,"Minimum absolute value of P/Q ratio to create a load model record"
+Vmin,0.93,"Lowest bus voltage to create a load model record"
+kVThresh,40,"kV threshold for model to add a transformer"
